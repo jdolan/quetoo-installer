@@ -1,4 +1,4 @@
-import httpclient, xmltree, xmlparser, sugar, strutils, os, md5
+import httpclient, xmltree, xmlparser, sugar, strutils, os, md5, uri
 
 var
   die: proc(s: string)
@@ -31,7 +31,7 @@ proc download(url: string, transform: (string) -> string) =
         if shouldUpdate(path, node.child("Size").innerText.parseBiggestInt, node.child("ETag").innerText[1..^2]):
           status(path)
           createDir(splitFile(path)[0])
-          writeFile(path, client.getContent(url & key))
+          writeFile(path, client.getContent(url & encodeUrl(key)))
 
 proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(s: string)) =
   die = pDie
