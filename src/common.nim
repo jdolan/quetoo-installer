@@ -30,6 +30,8 @@ proc download(url: string, transform: (string) -> string) =
       if path != "":
         if shouldUpdate(path, node.child("Size").innerText.parseBiggestInt, node.child("ETag").innerText[1..^2]):
           status(path)
+          createDir(splitFile(path)[0])
+          writeFile(path, client.getContent(url & key))
 
 proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(s: string)) =
   die = pDie
