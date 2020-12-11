@@ -1,8 +1,18 @@
-import httpclient, xmltree, xmlparser, sugar, strutils
+import httpclient, xmltree, xmlparser, sugar, strutils, os, md5
 
 var
   die: proc(s: string)
   status: proc(s: string)
+
+proc shouldUpdate(path: string, size: BiggestInt, md5: string): bool =
+  if not fileExists(path):
+    return true
+  elif getFileSize(path) != size:
+    return true
+  elif getMD5(readFile(path)) != md5:
+    return true
+  else:
+    return false
 
 proc download(url: string, transform: (string) -> string) =
   ## Downloads the Amazon S3 bucket at `url`.
@@ -18,7 +28,8 @@ proc download(url: string, transform: (string) -> string) =
       let key = node.child("Key").innerText
       let path = transform(key)
       if path != "":
-        status(path)
+        if shouldUpdate(path, node.child("Size").innerText.parseBiggestInt, node.child("ETag").innerText[1..^2]):
+          status(path)
 
 proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(s: string)) =
   die = pDie
