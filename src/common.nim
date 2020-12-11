@@ -18,5 +18,8 @@ proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(
   die = pDie
   status = pStatus
 
-  mainstatus("Installing")
-  download("https://quetoo.s3.amazonaws.com/")
+  try:
+    mainstatus("Installing")
+    download("https://quetoo.s3.amazonaws.com/")
+  except:
+    die(getCurrentExceptionMsg())
