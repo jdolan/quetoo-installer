@@ -5,7 +5,7 @@ author        = "Gibson"
 description   = "Quetoo installer"
 license       = "ISC"
 srcDir        = "src"
-bin           = @["quetoo_installer"]
+bin           = @["quetoo_installer_cli", "quetoo_installer"]
 
 
 # Dependencies
