@@ -18,10 +18,10 @@ proc download(url: string, transform: (string) -> string) =
   ## Downloads the Amazon S3 bucket at `url`.
   ## `transform()` is called for each file in the bucket, it can return the local output path or "" to prevent it being downloaded.
 
-  var client = newHttpClient()
+  let client = newHttpClient()
 
   status("Loading file list...", 0)
-  var bucket = parseXml(client.get(url).bodyStream)
+  let bucket = parseXml(client.get(url).bodyStream)
 
   for node in bucket:
     if tag(node) == "Contents":
