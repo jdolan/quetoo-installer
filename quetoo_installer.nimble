@@ -10,4 +10,4 @@ bin           = @["quetoo_installer_cli", "quetoo_installer"]
 
 # Dependencies
 
-requires "nim >= 1.4.2"
+requires "nim >= 1.4.2, nigui#HEAD"
