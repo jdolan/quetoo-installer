@@ -1,4 +1,4 @@
-import common, nigui, threadpool
+import common, nigui, nigui/msgbox, threadpool
 
 var
   win: Window
@@ -8,7 +8,10 @@ var
   pbar: ProgressBar
 
 proc die(s: string) =
-  quit(s)
+  {.gcsafe.}:
+    app.queueMain(proc() =
+      win.msgBox(s, "Error", "Close")
+      app.quit())
 
 proc mainstatus(s: string) =
   {.gcsafe.}:
