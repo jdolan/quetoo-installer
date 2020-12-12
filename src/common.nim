@@ -2,7 +2,7 @@ import httpclient, xmltree, xmlparser, sugar, strutils, os, md5, uri
 
 var
   die: proc(s: string)
-  status: proc(s: string)
+  status: proc(s: string, progress: float)
 
 proc shouldUpdate(path: string, size: BiggestInt, md5: string): bool =
   if not fileExists(path):
@@ -20,7 +20,7 @@ proc download(url: string, transform: (string) -> string) =
 
   var client = newHttpClient()
 
-  status("Loading file list...")
+  status("Loading file list...", 0)
   var bucket = parseXml(client.get(url).bodyStream)
 
   for node in bucket:
@@ -29,11 +29,11 @@ proc download(url: string, transform: (string) -> string) =
       let path = transform(key)
       if path != "":
         if shouldUpdate(path, node.child("Size").innerText.parseBiggestInt, node.child("ETag").innerText[1..^2]):
-          status(path)
+          status(path, 0.5)
           createDir(splitFile(path)[0])
           writeFile(path, client.getContent(url & encodeUrl(key)))
 
-proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(s: string)) =
+proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(s: string, progress: float)) =
   die = pDie
   status = pStatus
 
@@ -63,4 +63,4 @@ proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(
     die(getCurrentExceptionMsg())
 
   mainstatus("Done")
-  status("")
+  status("", 1)

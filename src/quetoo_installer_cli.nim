@@ -7,7 +7,7 @@ proc die(s: string) =
 proc mainstatus(s: string) =
   echo("\n>>> ", s, "\n")
 
-proc status(s: string) =
+proc status(s: string, progress: float) =
   echo(s)
 
 install(die, mainstatus, status)
