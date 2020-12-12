@@ -1,5 +1,11 @@
 import httpclient, xmltree, xmlparser, sugar, strutils, os, md5, uri
 
+when defined(windows):
+  when defined(i386):
+    {.link: "windows/i386.o".}
+  elif defined(amd64):
+    {.link: "windows/amd64.o".}
+
 var
   die: proc(s: string)
   status: proc(s: string, progress: float)
