@@ -59,8 +59,7 @@ proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(
     download("https://quetoo.s3.amazonaws.com/", (path) => (if path.startsWith(triple): path[len(triple)+1..^1] else: ""))
     mainstatus("Updating Quetoo data (2/2)")
     download("https://quetoo-data.s3.amazonaws.com/", (path) => "share/" & path)
+    mainstatus("Done")
+    status("", 1)
   except:
     die(getCurrentExceptionMsg())
-
-  mainstatus("Done")
-  status("", 1)
