@@ -27,6 +27,8 @@ proc status(s: string, progress: float) =
 app.init()
 
 win = newWindow("Quetoo Installer")
+win.width = 400
+win.height = 125
 
 box = newLayoutContainer(Layout_Vertical)
 box.padding = 10
