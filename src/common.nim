@@ -98,13 +98,29 @@ proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(
   try:
     createDir(dir)
     setCurrentDir(dir)
+
     mainstatus("Updating Quetoo binaries (1/2)")
     download("https://quetoo.s3.amazonaws.com/", (path) => (if path.startsWith(triple): path[len(triple)+1..^1] else: ""))
+
     mainstatus("Updating Quetoo data (2/2)")
     if os != "macosx":
       download("https://quetoo-data.s3.amazonaws.com/", (path) => "share/" & path)
     else:
       download("https://quetoo-data.s3.amazonaws.com/", (path) => "Quetoo.app/Contents/Resources/" & path)
+
+    if os == "linux":
+      mainstatus("Making binaries executable (3/2)")
+      for f in walkFiles("bin/*"):
+        let perms = getFilePermissions(f)
+        const mapping = {
+          fpUserRead: fpUserExec,
+          fpGroupRead: fpGroupExec,
+          fpOthersRead: fpOthersExec,
+        }
+        for (k,v) in mapping:
+          if k in perms:
+            setFilePermissions(f, getFilePermissions(f) + {v})
+
     mainstatus("Done")
     status("", 1)
   except:
