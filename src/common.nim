@@ -29,15 +29,22 @@ proc download(url: string, transform: (string) -> string) =
   status("Loading file list...", 0)
   let bucket = parseXml(client.get(url).bodyStream)
 
-  var pos = 0
+  var
+    pos = 0
+    total = 0
+
   for node in bucket:
-    pos += 1
+    if tag(node) == "Contents" and transform(node.child("Key").innerText) != "":
+      total += 1
+
+  for node in bucket:
     if tag(node) == "Contents":
       let key = node.child("Key").innerText
       let path = transform(key)
       if path != "":
+        pos += 1
         if shouldUpdate(path, node.child("Size").innerText.parseBiggestInt, node.child("ETag").innerText[1..^2]):
-          status(path, pos / bucket.len)
+          status(path, pos / total)
           createDir(splitFile(path)[0])
           writeFile(path, client.getContent(url & encodeUrl(key)))
 
