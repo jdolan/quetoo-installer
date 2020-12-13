@@ -92,6 +92,9 @@ proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(
         of "amd64":
           triple = "x86_64-apple-darwin"
 
+  if triple == "":
+    die("Unknown host: " & os & "/" & cpu)
+
   try:
     createDir(dir)
     setCurrentDir(dir)
