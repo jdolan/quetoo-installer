@@ -42,11 +42,11 @@ proc download(url: string, transform: (string) -> string) =
 let help = """
 Quetoo Installer
 
-Usage: """ & paramStr(0) & """ [options]
+Usage: """ & paramStr(0) & """ [options] [<dir>]
 
 Options:
-  -h --help            Show this message.
-  -o<os> --os <os>     Override OS detection (windows, linux, macosx)
+  -h      --help       Show this message.
+  -o<os>  --os <os>    Override OS detection (windows, linux, macosx)
   -c<cpu> --cpu <cpu>  Override OS detection (i386, amd64)
 """
 
@@ -55,13 +55,14 @@ proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(
   status = pStatus
 
   var
+    dir = "."
     os = hostOS
     cpu = hostCPU
 
   for kind, key, val in getopt(commandLineParams(), {'h'}, @["help"]):
     case kind:
       of cmdArgument:
-        discard
+        dir = key
       of cmdLongOption, cmdShortOption:
         case key:
           of "help", "h", "?":
@@ -92,6 +93,8 @@ proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(
           triple = "x86_64-apple-darwin"
 
   try:
+    createDir(dir)
+    setCurrentDir(dir)
     mainstatus("Updating Quetoo binaries (1/2)")
     download("https://quetoo.s3.amazonaws.com/", (path) => (if path.startsWith(triple): path[len(triple)+1..^1] else: ""))
     mainstatus("Updating Quetoo data (2/2)")
