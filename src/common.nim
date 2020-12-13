@@ -1,4 +1,4 @@
-import httpclient, xmltree, xmlparser, sugar, strutils, os, md5, uri
+import httpclient, xmltree, xmlparser, sugar, strutils, os, md5, uri, parseopt
 
 when defined(windows):
   when defined(i386):
@@ -39,24 +39,55 @@ proc download(url: string, transform: (string) -> string) =
           createDir(splitFile(path)[0])
           writeFile(path, client.getContent(url & encodeUrl(key)))
 
+let help = """
+Quetoo Installer
+
+Usage: """ & paramStr(0) & """ [options]
+
+Options:
+  -h --help            Show this message.
+  -o<os> --os <os>     Override OS detection (windows, linux, macosx)
+  -c<cpu> --cpu <cpu>  Override OS detection (i386, amd64)
+"""
+
 proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(s: string, progress: float)) =
   die = pDie
   status = pStatus
 
+  var
+    os = hostOS
+    cpu = hostCPU
+
+  for kind, key, val in getopt(commandLineParams(), {'h'}, @["help"]):
+    case kind:
+      of cmdArgument:
+        discard
+      of cmdLongOption, cmdShortOption:
+        case key:
+          of "help", "h", "?":
+            echo(help)
+            quit(0)
+          of "os", "o":
+            os = val
+          of "cpu", "c":
+            cpu = val
+      of cmdEnd:
+        assert(false)
+
   var triple: string
-  case hostOS:
+  case os:
     of "windows":
-      case hostCPU:
+      case cpu:
         of "i386":
           triple = "i686-pc-windows"
         of "amd64":
           triple = "x86_64-pc-windows"
     of "linux":
-      case hostCPU:
+      case cpu:
         of "amd64":
           triple = "x86_64-pc-linux"
     of "macosx":
-      case hostCPU:
+      case cpu:
         of "amd64":
           triple = "x86_64-apple-darwin"
 
