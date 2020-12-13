@@ -46,6 +46,8 @@ Usage: """ & paramStr(0) & """ [options] [<dir>]
 
 Options:
   -h      --help       Show this message.
+  -b      --bin        Only update binaries.
+  -d      --data       Only update data.
   -o<os>  --os <os>    Override OS detection (windows, linux, macosx)
   -c<cpu> --cpu <cpu>  Override OS detection (i386, amd64)
 """
@@ -58,8 +60,10 @@ proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(
     dir = "."
     os = hostOS
     cpu = hostCPU
+    bin = true
+    data = true
 
-  for kind, key, val in getopt(commandLineParams(), {'h'}, @["help"]):
+  for kind, key, val in getopt(commandLineParams(), {'h', 'b', 'd'}, @["help", "bin", "data"]):
     case kind:
       of cmdArgument:
         dir = key
@@ -68,6 +72,10 @@ proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(
           of "help", "h", "?":
             echo(help)
             quit(0)
+          of "bin", "b":
+            data = false
+          of "data", "d":
+            bin = false
           of "os", "o":
             os = val
           of "cpu", "c":
@@ -99,14 +107,16 @@ proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(
     createDir(dir)
     setCurrentDir(dir)
 
-    mainstatus("Updating Quetoo binaries (1/2)")
-    download("https://quetoo.s3.amazonaws.com/", (path) => (if path.startsWith(triple): path[len(triple)+1..^1] else: ""))
+    if bin:
+      mainstatus("Updating Quetoo binaries (1/2)")
+      download("https://quetoo.s3.amazonaws.com/", (path) => (if path.startsWith(triple): path[len(triple)+1..^1] else: ""))
 
-    mainstatus("Updating Quetoo data (2/2)")
-    if os != "macosx":
-      download("https://quetoo-data.s3.amazonaws.com/", (path) => "share/" & path)
-    else:
-      download("https://quetoo-data.s3.amazonaws.com/", (path) => "Quetoo.app/Contents/Resources/" & path)
+    if data:
+      mainstatus("Updating Quetoo data (2/2)")
+      if os != "macosx":
+        download("https://quetoo-data.s3.amazonaws.com/", (path) => "share/" & path)
+      else:
+        download("https://quetoo-data.s3.amazonaws.com/", (path) => "Quetoo.app/Contents/Resources/" & path)
 
     if os == "linux":
       mainstatus("Making binaries executable (3/2)")
