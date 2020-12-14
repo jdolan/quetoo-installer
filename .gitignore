@@ -1,2 +1,10 @@
 quetoo_installer_cli
 quetoo_installer
+*.exe
+
+bin
+lib
+share
+*.desktop
+README.txt
+*.app
