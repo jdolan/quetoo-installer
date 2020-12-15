@@ -10,4 +10,5 @@ proc mainstatus(s: string) =
 proc status(s: string, progress: float) =
   echo(s)
 
+init()
 install(die, mainstatus, status)

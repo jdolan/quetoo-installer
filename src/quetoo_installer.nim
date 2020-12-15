@@ -24,6 +24,8 @@ proc status(s: string, progress: float) =
       label2.text = s
       pbar.value = progress)
 
+init()
+
 app.init()
 
 win = newWindow("Quetoo Installer")

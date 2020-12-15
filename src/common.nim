@@ -61,17 +61,15 @@ Options:
   -c<cpu> --cpu <cpu>  Override OS detection (i386, amd64)
 """
 
-proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(s: string, progress: float)) =
-  die = pDie
-  status = pStatus
+var
+  dir = "."
+  outOS = hostOS
+  outCPU = hostCPU
+  triple = ""
+  bin = true
+  data = true
 
-  var
-    dir = "."
-    os = hostOS
-    cpu = hostCPU
-    bin = true
-    data = true
-
+proc init*() =
   for kind, key, val in getopt(commandLineParams(), {'h', 'b', 'd'}, @["help", "bin", "data"]):
     case kind:
       of cmdArgument:
@@ -86,31 +84,34 @@ proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(
           of "data", "d":
             bin = false
           of "os", "o":
-            os = val
+            outOS = val
           of "cpu", "c":
-            cpu = val
+            outCPU = val
       of cmdEnd:
         assert(false)
 
-  var triple: string
-  case os:
+  case outOS:
     of "windows":
-      case cpu:
+      case outCPU:
         of "i386":
           triple = "i686-pc-windows"
         of "amd64":
           triple = "x86_64-pc-windows"
     of "linux":
-      case cpu:
+      case outCPU:
         of "amd64":
           triple = "x86_64-pc-linux"
     of "macosx":
-      case cpu:
+      case outCPU:
         of "amd64":
           triple = "x86_64-apple-darwin"
 
   if triple == "":
-    die("Unknown host: " & os & "/" & cpu)
+    die("Unknown host: " & outOS & "/" & outCPU)
+
+proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(s: string, progress: float)) =
+  die = pDie
+  status = pStatus
 
   try:
     createDir(dir)
@@ -122,12 +123,12 @@ proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(
 
     if data:
       mainstatus("Updating Quetoo data (2/2)")
-      if os != "macosx":
+      if outOS != "macosx":
         download("https://quetoo-data.s3.amazonaws.com/", (path) => "share/" & path)
       else:
         download("https://quetoo-data.s3.amazonaws.com/", (path) => "Quetoo.app/Contents/Resources/" & path)
 
-    if os == "linux":
+    if outOS == "linux":
       mainstatus("Making binaries executable (3/2)")
       for f in walkFiles("bin/*"):
         let perms = getFilePermissions(f)
