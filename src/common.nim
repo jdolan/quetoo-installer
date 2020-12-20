@@ -115,7 +115,7 @@ proc init*() =
   if triple == "":
     die("Unknown host: " & outOS & "/" & outCPU)
 
-  if dirExists(check):
+  if dirExists(dir & "/" & check):
     newInstall = false
 
 proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(s: string, progress: float)) =
