@@ -68,8 +68,11 @@ var
   triple = ""
   bin = true
   data = true
+  newInstall* = true
 
 proc init*() =
+  var check = ""
+
   for kind, key, val in getopt(commandLineParams(), {'h', 'b', 'd'}, @["help", "bin", "data"]):
     case kind:
       of cmdArgument:
@@ -92,22 +95,28 @@ proc init*() =
 
   case outOS:
     of "windows":
+      check = "bin"
       case outCPU:
         of "i386":
           triple = "i686-pc-windows"
         of "amd64":
           triple = "x86_64-pc-windows"
     of "linux":
+      check = "bin"
       case outCPU:
         of "amd64":
           triple = "x86_64-pc-linux"
     of "macosx":
+      check = "Quetoo.app"
       case outCPU:
         of "amd64":
           triple = "x86_64-apple-darwin"
 
   if triple == "":
     die("Unknown host: " & outOS & "/" & outCPU)
+
+  if dirExists(check):
+    newInstall = false
 
 proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(s: string, progress: float)) =
   die = pDie
@@ -118,11 +127,11 @@ proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(
     setCurrentDir(dir)
 
     if bin:
-      mainstatus("Updating Quetoo binaries (1/2)")
+      mainstatus((if newInstall: "Installing" else: "Updating") & " Quetoo binaries (1/2)")
       download("https://quetoo.s3.amazonaws.com/", (path) => (if path.startsWith(triple): path[len(triple)+1..^1] else: ""))
 
     if data:
-      mainstatus("Updating Quetoo data (2/2)")
+      mainstatus((if newInstall: "Installing" else: "Updating") & " Quetoo data (2/2)")
       if outOS != "macosx":
         download("https://quetoo-data.s3.amazonaws.com/", (path) => "share/" & path)
       else:

@@ -36,7 +36,7 @@ box = newLayoutContainer(Layout_Vertical)
 box.padding = 10
 win.add(box)
 
-button = newButton("Update")
+button = newButton(if newInstall: "Install" else: "Update")
 box.add(button)
 
 proc start() =
