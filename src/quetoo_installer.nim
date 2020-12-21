@@ -7,30 +7,26 @@ var
   label1, label2: Label
   pbar: ProgressBar
   thread: Thread[void]
-  queue: int
 
 proc die(s: string) =
   {.gcsafe.}:
-    inc queue
     app.queueMain(proc() =
       win.msgBox(s, "Error", "Close")
       app.quit()
-      dec queue)
+    )
 
 proc mainstatus(s: string) =
   {.gcsafe.}:
-    inc queue
     app.queueMain(proc() =
       label1.text = s
-      dec queue)
+    )
 
 proc status(s: string, progress: float) =
   {.gcsafe.}:
-    inc queue
     app.queueMain(proc() =
       label2.text = s
       pbar.value = progress
-      dec queue)
+    )
 
 init()
 
@@ -50,7 +46,7 @@ box.add(button)
 proc start() =
   {.gcsafe.}:
     install(die, mainstatus, status)
-    while queue > 0:
+    while app.queued() > 0:
       discard
 
 button.onClick = proc(event: ClickEvent) =
