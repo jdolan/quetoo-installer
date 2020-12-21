@@ -1,4 +1,4 @@
-import common, nigui, nigui/msgbox, threadpool
+import common, nigui, nigui/msgbox
 
 var
   win: Window
@@ -6,23 +6,31 @@ var
   button: Button
   label1, label2: Label
   pbar: ProgressBar
+  thread: Thread[void]
+  queue: int
 
 proc die(s: string) =
   {.gcsafe.}:
+    inc queue
     app.queueMain(proc() =
       win.msgBox(s, "Error", "Close")
-      app.quit())
+      app.quit()
+      dec queue)
 
 proc mainstatus(s: string) =
   {.gcsafe.}:
+    inc queue
     app.queueMain(proc() =
-      label1.text = s)
+      label1.text = s
+      dec queue)
 
 proc status(s: string, progress: float) =
   {.gcsafe.}:
+    inc queue
     app.queueMain(proc() =
       label2.text = s
-      pbar.value = progress)
+      pbar.value = progress
+      dec queue)
 
 init()
 
@@ -42,6 +50,8 @@ box.add(button)
 proc start() =
   {.gcsafe.}:
     install(die, mainstatus, status)
+    while queue > 0:
+      discard
 
 button.onClick = proc(event: ClickEvent) =
   box.remove(button)
@@ -55,7 +65,7 @@ button.onClick = proc(event: ClickEvent) =
   label2 = newLabel("")
   box.add(label2)
 
-  spawn start()
+  createThread(thread, start)
 
 win.show()
 app.run()
