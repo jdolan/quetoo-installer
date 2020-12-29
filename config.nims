@@ -1,3 +1,5 @@
+switch("define", "ssl")
+
 when defined(staticBuild):
   when defined(windows):
     # TODO: change once issue nim#15220 is resolved
