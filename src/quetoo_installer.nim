@@ -5,8 +5,8 @@ var opts = newInstallerOptions()
 app.init()
 
 var win = newWindow("Quetoo Installer")
-win.width = 400.scaleToDpi
-win.height = 125.scaleToDpi
+win.width = 600.scaleToDpi
+win.height = 400.scaleToDpi
 
 var container = newLayoutContainer(Layout_Vertical)
 container.padding = 10
