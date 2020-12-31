@@ -1,4 +1,4 @@
-import httpclient, xmltree, xmlparser, sugar, strutils, os, md5, uri, parseopt
+import httpclient, xmltree, xmlparser, sugar, strutils, os, md5, uri
 
 when defined(windows):
   when defined(i386):
@@ -48,96 +48,63 @@ proc download(url: string, transform: (string) -> string) =
           createDir(splitFile(path)[0])
           writeFile(path, client.getContent(url & encodeUrl(key)))
 
-let help = """
-Quetoo Installer
-
-Usage: """ & paramStr(0) & """ [options] [<dir>]
-
-Options:
-  -h      --help       Show this message.
-  -b      --bin        Only update binaries.
-  -d      --data       Only update data.
-  -o<os>  --os <os>    Override OS detection (windows, linux, macosx)
-  -c<cpu> --cpu <cpu>  Override OS detection (i386, amd64)
-"""
-
 var
-  dir = "."
-  outOS = hostOS
-  outCPU = hostCPU
-  triple = ""
-  bin = true
-  data = true
   newInstall* = true
 
-proc init*() =
-  var check = ""
+type
+  InstallerOptions* = object
+    dir*, os*, cpu*: string
+    installBin*, installData*: bool
 
-  for kind, key, val in getopt(commandLineParams(), {'h', 'b', 'd'}, @["help", "bin", "data"]):
-    case kind:
-      of cmdArgument:
-        dir = key
-      of cmdLongOption, cmdShortOption:
-        case key:
-          of "help", "h", "?":
-            echo(help)
-            quit(0)
-          of "bin", "b":
-            data = false
-          of "data", "d":
-            bin = false
-          of "os", "o":
-            outOS = val
-          of "cpu", "c":
-            outCPU = val
-      of cmdEnd:
-        assert(false)
+proc newInstallerOptions*(): InstallerOptions =
+  InstallerOptions(
+    dir: ".",
+    os: hostOS,
+    cpu: hostCPU,
+    installBin: true,
+    installData: true,
+  )
 
-  case outOS:
+proc install*(opts: InstallerOptions, pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(s: string, progress: float)) =
+  die = pDie
+  status = pStatus
+
+  var triple: string
+  case opts.os:
     of "windows":
-      check = "bin"
-      case outCPU:
+      case opts.cpu:
         of "i386":
           triple = "i686-pc-windows"
         of "amd64":
           triple = "x86_64-pc-windows"
     of "linux":
-      check = "bin"
-      case outCPU:
+      case opts.cpu:
         of "amd64":
           triple = "x86_64-pc-linux"
     of "macosx":
-      check = "Quetoo.app"
-      case outCPU:
+      case opts.cpu:
         of "amd64":
           triple = "x86_64-apple-darwin"
 
   if triple == "":
-    die("Unknown host: " & outOS & "/" & outCPU)
-
-  if dirExists(dir & "/" & check):
-    newInstall = false
-
-proc install*(pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(s: string, progress: float)) =
-  die = pDie
-  status = pStatus
+    die("Unknown host: " & opts.os & "/" & opts.cpu)
 
   try:
-    createDir(dir)
-    setCurrentDir(dir)
+    createDir(opts.dir)
+    setCurrentDir(opts.dir)
 
-    if bin:
+    if opts.installBin:
       mainstatus((if newInstall: "Installing" else: "Updating") & " Quetoo binaries (1/2)")
       download("https://quetoo.s3.amazonaws.com/", (path) => (if path.startsWith(triple): path[len(triple)+1..^1] else: ""))
 
-    if data:
+    if opts.installData:
       mainstatus((if newInstall: "Installing" else: "Updating") & " Quetoo data (2/2)")
-      if outOS != "macosx":
+      if opts.os != "macosx":
         download("https://quetoo-data.s3.amazonaws.com/", (path) => "share/" & path)
       else:
         download("https://quetoo-data.s3.amazonaws.com/", (path) => "Quetoo.app/Contents/Resources/" & path)
 
-    if outOS == "linux":
+    if opts.os == "linux":
       mainstatus("Making binaries executable (3/2)")
       for f in walkFiles("bin/*"):
         let perms = getFilePermissions(f)
