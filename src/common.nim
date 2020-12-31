@@ -48,9 +48,6 @@ proc download(url: string, transform: (string) -> string) =
           createDir(splitFile(path)[0])
           writeFile(path, client.getContent(url & encodeUrl(key)))
 
-var
-  newInstall* = true
-
 type
   InstallerOptions* = object
     dir*, os*, cpu*: string
@@ -64,6 +61,15 @@ proc newInstallerOptions*(): InstallerOptions =
     installBin: true,
     installData: true,
   )
+
+proc isNewInstall*(opts: InstallerOptions): bool =
+  var check: string
+  case opts.os:
+    of "windows", "linux":
+      check = "bin"
+    of "macosx":
+      check = "Quetoo.app"
+  return not dirExists(opts.dir & "/" & check)
 
 proc install*(opts: InstallerOptions, pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(s: string, progress: float)) =
   die = pDie
@@ -94,11 +100,11 @@ proc install*(opts: InstallerOptions, pDie: proc(s: string), mainstatus: proc(s:
     setCurrentDir(opts.dir)
 
     if opts.installBin:
-      mainstatus((if newInstall: "Installing" else: "Updating") & " Quetoo binaries (1/2)")
+      mainstatus((if isNewInstall(opts): "Installing" else: "Updating") & " Quetoo binaries (1/2)")
       download("https://quetoo.s3.amazonaws.com/", (path) => (if path.startsWith(triple): path[len(triple)+1..^1] else: ""))
 
     if opts.installData:
-      mainstatus((if newInstall: "Installing" else: "Updating") & " Quetoo data (2/2)")
+      mainstatus((if isNewInstall(opts): "Installing" else: "Updating") & " Quetoo data (2/2)")
       if opts.os != "macosx":
         download("https://quetoo-data.s3.amazonaws.com/", (path) => "share/" & path)
       else:

@@ -28,6 +28,8 @@ proc status(s: string, progress: float) =
       pbar.value = progress
     )
 
+var opts = newInstallerOptions()
+
 app.init()
 
 win = newWindow("Quetoo Installer")
@@ -38,12 +40,12 @@ box = newLayoutContainer(Layout_Vertical)
 box.padding = 10
 win.add(box)
 
-button = newButton(if newInstall: "Install" else: "Update")
+button = newButton(if isNewInstall(opts): "Install" else: "Update")
 box.add(button)
 
 proc start() =
   {.gcsafe.}:
-    install(newInstallerOptions(), die, mainstatus, status)
+    install(opts, die, mainstatus, status)
     while app.queued() > 0:
       discard
 
