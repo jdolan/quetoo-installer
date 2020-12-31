@@ -1,6 +1,7 @@
 import common, nigui, nigui/msgbox
 
 var opts = newInstallerOptions()
+let verb = if isNewInstall(opts): "Install" else: "Update"
 
 app.init()
 
@@ -12,7 +13,7 @@ var container = newLayoutContainer(Layout_Vertical)
 container.padding = 10
 win.add(container)
 
-var button = newButton(if isNewInstall(opts): "Install" else: "Update")
+var button = newButton(verb)
 container.add(button)
 
 var optionContainer = newLayoutContainer(Layout_Vertical)
@@ -20,11 +21,11 @@ var optionFrame = newFrame("Options")
 optionContainer.frame = optionFrame
 container.add(optionContainer)
 
-var binCheckbox = newCheckbox("Install binaries")
+var binCheckbox = newCheckbox(verb & " binaries")
 binCheckbox.checked = true
 optionContainer.add(binCheckbox)
 
-var dataCheckbox = newCheckbox("Install data")
+var dataCheckbox = newCheckbox(verb & " data")
 dataCheckbox.checked = true
 optionContainer.add(dataCheckbox)
 
