@@ -15,6 +15,19 @@ win.add(container)
 var button = newButton(if isNewInstall(opts): "Install" else: "Update")
 container.add(button)
 
+var optionContainer = newLayoutContainer(Layout_Vertical)
+var optionFrame = newFrame("Options")
+optionContainer.frame = optionFrame
+container.add(optionContainer)
+
+var binCheckbox = newCheckbox("Install binaries")
+binCheckbox.checked = true
+optionContainer.add(binCheckbox)
+
+var dataCheckbox = newCheckbox("Install data")
+dataCheckbox.checked = true
+optionContainer.add(dataCheckbox)
+
 var
   label1, label2: Label
   pbar: ProgressBar
@@ -48,6 +61,10 @@ proc start() =
 var thread: Thread[void]
 
 button.onClick = proc(event: ClickEvent) =
+  opts.installBin = binCheckbox.checked
+  opts.installData = dataCheckbox.checked
+
+  container.remove(optionContainer)
   container.remove(button)
 
   label1 = newLabel("Initialising")
