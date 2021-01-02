@@ -1,6 +1,13 @@
-import common, nigui, nigui/msgbox
+import common, os, parsecfg, strutils, nigui, nigui/msgbox
 
 var opts = newInstallerOptions()
+let cfgPath = getConfigDir() & "quetoo-installer/config.cfg"
+try:
+  let cfg = loadConfig(cfgPath)
+  opts.installBin = cfg.getSectionValue("", "installBin", $opts.installBin).parseBool
+  opts.installData = cfg.getSectionValue("", "installData", $opts.installBin).parseBool
+except IOError:
+  discard
 let verb = if isNewInstall(opts): "Install" else: "Update"
 
 app.init()
@@ -22,11 +29,11 @@ optionContainer.frame = optionFrame
 container.add(optionContainer)
 
 var binCheckbox = newCheckbox(verb & " binaries")
-binCheckbox.checked = true
+binCheckbox.checked = opts.installBin
 optionContainer.add(binCheckbox)
 
 var dataCheckbox = newCheckbox(verb & " data")
-dataCheckbox.checked = true
+dataCheckbox.checked = opts.installData
 optionContainer.add(dataCheckbox)
 
 var
@@ -64,6 +71,12 @@ var thread: Thread[void]
 button.onClick = proc(event: ClickEvent) =
   opts.installBin = binCheckbox.checked
   opts.installData = dataCheckbox.checked
+
+  var cfg = newConfig()
+  cfg.setSectionKey("", "installBin", $opts.installBin)
+  cfg.setSectionKey("", "installData", $opts.installData)
+  createDir(splitPath(cfgPath)[0])
+  writeConfig(cfg, cfgPath)
 
   container.remove(optionContainer)
   container.remove(button)
