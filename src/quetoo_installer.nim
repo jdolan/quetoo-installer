@@ -4,6 +4,7 @@ var opts = newInstallerOptions()
 let cfgPath = getConfigDir() & "quetoo-installer/config.cfg"
 try:
   let cfg = loadConfig(cfgPath)
+  opts.dir = cfg.getSectionValue("", "dir", opts.dir)
   opts.installBin = cfg.getSectionValue("", "installBin", $opts.installBin).parseBool
   opts.installData = cfg.getSectionValue("", "installData", $opts.installBin).parseBool
 except IOError:
@@ -27,6 +28,16 @@ var optionContainer = newLayoutContainer(Layout_Vertical)
 var optionFrame = newFrame("Options")
 optionContainer.frame = optionFrame
 container.add(optionContainer)
+
+var dirButton = newButton("Select directory")
+dirButton.onClick = proc(event: ClickEvent) =
+  var dialog = SelectDirectoryDialog()
+  dialog.title = "Select install directory"
+  dialog.startDirectory = opts.dir
+  dialog.run()
+  if dialog.selectedDirectory != "":
+    opts.dir = dialog.selectedDirectory
+optionContainer.add(dirButton)
 
 var binCheckbox = newCheckbox(verb & " binaries")
 binCheckbox.checked = opts.installBin
@@ -73,6 +84,7 @@ button.onClick = proc(event: ClickEvent) =
   opts.installData = dataCheckbox.checked
 
   var cfg = newConfig()
+  cfg.setSectionKey("", "dir", $opts.dir)
   cfg.setSectionKey("", "installBin", $opts.installBin)
   cfg.setSectionKey("", "installData", $opts.installData)
   createDir(splitPath(cfgPath)[0])
