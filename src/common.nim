@@ -27,26 +27,29 @@ proc download(url: string, transform: (string) -> string) =
   let client = newHttpClient()
 
   status("Loading file list...", 0)
-  let bucket = parseXml(client.get(url).bodyStream)
+  var contents: seq[XmlNode]
+  var append: string
+  while true:
+    let bucket = parseXml(client.get(url & append).bodyStream)
+    for node in bucket:
+      if tag(node) == "Contents" and transform(node.child("Key").innerText) != "":
+        contents.add(node)
+    if bucket.child("IsTruncated").innerText == "true":
+      append = "?marker=" & encodeUrl(contents[^1].child("Key").innerText)
+    else:
+      break
 
-  var
-    pos = 0
-    total = 0
+  status("Checking files...", 0)
 
-  for node in bucket:
-    if tag(node) == "Contents" and transform(node.child("Key").innerText) != "":
-      total += 1
-
-  for node in bucket:
-    if tag(node) == "Contents":
-      let key = node.child("Key").innerText
-      let path = transform(key)
-      if path != "":
-        pos += 1
-        if shouldUpdate(path, node.child("Size").innerText.parseBiggestInt, node.child("ETag").innerText[1..^2]):
-          status(path, pos / total)
-          createDir(splitFile(path)[0])
-          writeFile(path, client.getContent(url & encodeUrl(key)))
+  var pos = 0
+  for node in contents:
+    let key = node.child("Key").innerText
+    let path = transform(key)
+    pos += 1
+    if shouldUpdate(path, node.child("Size").innerText.parseBiggestInt, node.child("ETag").innerText[1..^2]):
+      status(path, pos / len(contents))
+      createDir(splitFile(path)[0])
+      writeFile(path, client.getContent(url & encodeUrl(key)))
 
 type
   InstallerOptions* = object
