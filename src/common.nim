@@ -24,7 +24,7 @@ proc download(url: string, transform: (string) -> string) =
   ## Downloads the Amazon S3 bucket at `url`.
   ## `transform()` is called for each file in the bucket, it can return the local output path or "" to prevent it being downloaded.
 
-  let client = newHttpClient()
+  var client = newHttpClient()
 
   status("Loading file list...", 0)
   var contents: seq[XmlNode]
@@ -49,8 +49,11 @@ proc download(url: string, transform: (string) -> string) =
     if shouldUpdate(path, node.child("Size").innerText.parseBiggestInt, node.child("ETag").innerText[1..^2]):
       status(path, pos / len(contents))
       createDir(splitFile(path)[0])
-      let client = newHttpClient() # XXX: without this, errors with "Connection was closed before full request has been made"
-      writeFile(path, client.getContent(url & encodeUrl(key)))
+      try:
+        writeFile(path, client.getContent(url & encodeUrl(key)))
+      except ProtocolError: # Attempt retry in case of "Connection was closed before full request has been made"
+        client = newHttpClient()
+        writeFile(path, client.getContent(url & encodeUrl(key)))
 
 type
   InstallerOptions* = object
