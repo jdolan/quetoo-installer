@@ -102,6 +102,7 @@ button.onClick = proc(event: ClickEvent) =
   label2 = newLabel("")
   container.add(label2)
 
+  app.processEvents()
   createThread(thread, start)
 
 win.show()
