@@ -49,6 +49,7 @@ proc download(url: string, transform: (string) -> string) =
     if shouldUpdate(path, node.child("Size").innerText.parseBiggestInt, node.child("ETag").innerText[1..^2]):
       status(path, pos / len(contents))
       createDir(splitFile(path)[0])
+      let client = newHttpClient() # XXX: without this, errors with "Connection was closed before full request has been made"
       writeFile(path, client.getContent(url & encodeUrl(key)))
 
 type
