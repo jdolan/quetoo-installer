@@ -8,4 +8,4 @@ Install the latest version of [Nim](https://nim-lang.org). To build the graphica
 
     nimble build
 
-For a release build (runs much faster), pass `-d:release`. To cross-compile for Windows using [mingw-w64](http://mingw-w64.org), pass `-d:mingw`.
+For a release build (runs much faster), pass `-d:release`. To cross-compile for Windows using [mingw-w64](http://mingw-w64.org), pass `-d:mingw`. On Windows, pass `-d:staticBuild` to statically link with OpenSSL.
