@@ -5,6 +5,8 @@ let cfgPath = getConfigDir() & "quetoo-installer/config.cfg"
 try:
   let cfg = loadConfig(cfgPath)
   opts.dir = cfg.getSectionValue("", "dir", opts.dir)
+  opts.os = cfg.getSectionValue("", "os", opts.os)
+  opts.cpu = cfg.getSectionValue("", "cpu", opts.cpu)
   opts.installBin = cfg.getSectionValue("", "installBin", $opts.installBin).parseBool
   opts.installData = cfg.getSectionValue("", "installData", $opts.installBin).parseBool
 except IOError:
@@ -47,6 +49,14 @@ var dataCheckbox = newCheckbox(verb & " data")
 dataCheckbox.checked = opts.installData
 optionContainer.add(dataCheckbox)
 
+var osComboBox = newComboBox(@["windows", "linux", "macosx"])
+osComboBox.value = opts.os
+optionContainer.add(osComboBox)
+
+var cpuComboBox = newComboBox(@["i386", "amd64"])
+cpuComboBox.value = opts.cpu
+optionContainer.add(cpuComboBox)
+
 var
   label1, label2: Label
   pbar: ProgressBar
@@ -80,11 +90,15 @@ proc start() =
 var thread: Thread[void]
 
 button.onClick = proc(event: ClickEvent) =
+  opts.os = osComboBox.value
+  opts.cpu = cpuComboBox.value
   opts.installBin = binCheckbox.checked
   opts.installData = dataCheckbox.checked
 
   var cfg = newConfig()
   cfg.setSectionKey("", "dir", $opts.dir)
+  cfg.setSectionKey("", "os", opts.os)
+  cfg.setSectionKey("", "cpu", opts.cpu)
   cfg.setSectionKey("", "installBin", $opts.installBin)
   cfg.setSectionKey("", "installData", $opts.installData)
   createDir(splitPath(cfgPath)[0])
