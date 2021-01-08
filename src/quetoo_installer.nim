@@ -96,7 +96,7 @@ button.onClick = proc(event: ClickEvent) =
   opts.installData = dataCheckbox.checked
 
   var cfg = newConfig()
-  cfg.setSectionKey("", "dir", $opts.dir)
+  cfg.setSectionKey("", "dir", opts.dir)
   cfg.setSectionKey("", "os", opts.os)
   cfg.setSectionKey("", "cpu", opts.cpu)
   cfg.setSectionKey("", "installBin", $opts.installBin)
