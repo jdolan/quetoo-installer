@@ -90,6 +90,12 @@ proc install*(opts: InstallerOptions, pDie: proc(s: string), mainstatus: proc(s:
           triple = "i686-pc-windows"
         of "amd64":
           triple = "x86_64-pc-windows"
+    of "mingw":
+      case opts.cpu:
+        of "i386":
+          triple = "i686-w64-mingw32"
+        of "amd64":
+          triple = "x86_64-w64-mingw32"
     of "linux":
       case opts.cpu:
         of "amd64":

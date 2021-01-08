@@ -49,7 +49,7 @@ var dataCheckbox = newCheckbox(verb & " data")
 dataCheckbox.checked = opts.installData
 optionContainer.add(dataCheckbox)
 
-var osComboBox = newComboBox(@["windows", "linux", "macosx"])
+var osComboBox = newComboBox(@["windows", "mingw", "linux", "macosx"])
 osComboBox.value = opts.os
 optionContainer.add(osComboBox)
 
