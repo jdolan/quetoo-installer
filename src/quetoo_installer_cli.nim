@@ -19,7 +19,7 @@ Options:
   -h      --help       Show this message.
   -b      --bin        Only update binaries.
   -d      --data       Only update data.
-  -o<os>  --os <os>    Override OS detection (windows, linux, macosx)
+  -o<os>  --os <os>    Override OS detection (windows, mingw, linux, macosx)
   -c<cpu> --cpu <cpu>  Override OS detection (i386, amd64)
 """
 
