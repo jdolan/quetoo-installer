@@ -20,9 +20,11 @@ proc shouldUpdate(path: string, size: BiggestInt, md5: string): bool =
   else:
     return false
 
-proc download(url: string, transform: (string) -> string) =
+proc download(url: string, transform: (string) -> string): seq[string] =
   ## Downloads the Amazon S3 bucket at `url`.
   ## `transform()` is called for each file in the bucket, it can return the local output path or "" to prevent it being downloaded.
+  ##
+  ## Returns a seq[string] containing all files that were downloaded/verified.
 
   var client = newHttpClient()
 
@@ -41,10 +43,12 @@ proc download(url: string, transform: (string) -> string) =
 
   status("Checking files...", 0)
 
+  var files: seq[string]
   var pos = 0
   for node in contents:
     let key = node.child("Key").innerText
     let path = transform(key)
+    files.add(path)
     pos += 1
     if shouldUpdate(path, node.child("Size").innerText.parseBiggestInt, node.child("ETag").innerText[1..^2]):
       status(path, pos / len(contents))
@@ -54,6 +58,8 @@ proc download(url: string, transform: (string) -> string) =
       except ProtocolError: # Attempt retry in case of "Connection was closed before full request has been made"
         client = newHttpClient()
         writeFile(path, client.getContent(url & encodeUrl(key)))
+
+  return files
 
 type
   InstallerOptions* = object
@@ -112,19 +118,34 @@ proc install*(opts: InstallerOptions, pDie: proc(s: string), mainstatus: proc(s:
     createDir(opts.dir)
     setCurrentDir(opts.dir)
 
+    var files: seq[string]
+
     if opts.installBin:
-      mainstatus((if isNewInstall(opts): "Installing" else: "Updating") & " Quetoo binaries (1/2)")
-      download("https://quetoo.s3.amazonaws.com/", (path) => (if path.startsWith(triple): path[len(triple)+1..^1] else: ""))
+      mainstatus((if isNewInstall(opts): "Installing" else: "Updating") & " Quetoo binaries (1/3)")
+      files = download("https://quetoo.s3.amazonaws.com/", (path) => (if path.startsWith(triple): path[len(triple)+1..^1] else: ""))
 
     if opts.installData:
-      mainstatus((if isNewInstall(opts): "Installing" else: "Updating") & " Quetoo data (2/2)")
+      mainstatus((if isNewInstall(opts): "Installing" else: "Updating") & " Quetoo data (2/3)")
       if opts.os != "macosx":
-        download("https://quetoo-data.s3.amazonaws.com/", (path) => "share/" & path)
+        files &= download("https://quetoo-data.s3.amazonaws.com/", (path) => "share/" & path)
       else:
-        download("https://quetoo-data.s3.amazonaws.com/", (path) => "Quetoo.app/Contents/Resources/" & path)
+        files &= download("https://quetoo-data.s3.amazonaws.com/", (path) => "Quetoo.app/Contents/Resources/" & path)
+
+    mainstatus("Removing outdated files (3/3)")
+    status("Checking...", 0)
+    var paths: seq[string]
+    case opts.os:
+      of "windows", "mingw", "linux":
+        paths = @["bin", "lib", "share"]
+      of "macosx":
+        paths = @["Quetoo.app", "Update.app"]
+    for p in paths:
+      for f in walkDirRec(p):
+        if f.replace(DirSep, '/') notin files:
+          echo f
 
     if opts.os == "linux":
-      mainstatus("Making binaries executable (3/2)")
+      mainstatus("Making binaries executable (4/3)")
       for f in walkFiles("bin/*"):
         let perms = getFilePermissions(f)
         const mapping = {
