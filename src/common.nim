@@ -122,19 +122,30 @@ proc install*(opts: InstallerOptions, pDie: proc(s: string), mainstatus: proc(s:
 
     var files: seq[string]
 
+    var task, nTasks: int
+    for opt in [opts.installBin, opts.installData, opts.purge]:
+      if opt:
+        nTasks += 1
+    if opts.os == "linux":
+      nTasks += 1
+    let tasks = $nTasks
+
     if opts.installBin:
-      mainstatus((if isNewInstall(opts): "Installing" else: "Updating") & " Quetoo binaries (1/3)")
+      task += 1
+      mainstatus((if isNewInstall(opts): "Installing" else: "Updating") & " Quetoo binaries (" & $task & "/" & tasks & ")")
       files = download("https://quetoo.s3.amazonaws.com/", (path) => (if path.startsWith(triple): path[len(triple)+1..^1] else: ""))
 
     if opts.installData:
-      mainstatus((if isNewInstall(opts): "Installing" else: "Updating") & " Quetoo data (2/3)")
+      task += 1
+      mainstatus((if isNewInstall(opts): "Installing" else: "Updating") & " Quetoo data (" & $task & "/" & tasks & ")")
       if opts.os != "macosx":
         files &= download("https://quetoo-data.s3.amazonaws.com/", (path) => "share/" & path)
       else:
         files &= download("https://quetoo-data.s3.amazonaws.com/", (path) => "Quetoo.app/Contents/Resources/" & path)
 
     if opts.purge:
-      mainstatus("Removing outdated files (3/3)")
+      task += 1
+      mainstatus("Removing outdated files (" & $task & "/" & tasks & ")")
       status("Checking...", 0)
       var paths: seq[string]
       case opts.os:
@@ -148,7 +159,8 @@ proc install*(opts: InstallerOptions, pDie: proc(s: string), mainstatus: proc(s:
             removeFile(f)
 
     if opts.os == "linux":
-      mainstatus("Making binaries executable (4/3)")
+      task += 1
+      mainstatus("Making binaries executable (" & $task & "/" & tasks & ")")
       for f in walkFiles("bin/*"):
         let perms = getFilePermissions(f)
         const mapping = {
