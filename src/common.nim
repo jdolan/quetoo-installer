@@ -152,9 +152,16 @@ proc install*(opts: InstallerOptions, pDie: proc(s: string), mainstatus: proc(s:
       var paths: seq[string]
       case opts.os:
         of "windows", "mingw", "linux":
-          paths = @["bin", "lib", "share"]
+          if opts.installBin:
+            paths &= @["bin", "lib"]
+          if opts.installData:
+            paths &= @["share"]
         of "macosx":
-          paths = @["Quetoo.app", "Update.app"]
+          if opts.installBin:
+            paths &= @["Update.app"]
+            if opts.installData:
+              paths &= @["Quetoo.app"] # XXX: macos stores binaries and data in the app bundle so we don't purge it unless both were installed
+
       for p in paths:
         for f in walkDirRec(p):
           if f.replace(DirSep, '/') notin files:
