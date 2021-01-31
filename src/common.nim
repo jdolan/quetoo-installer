@@ -83,6 +83,8 @@ proc isNewInstall*(opts: InstallerOptions): bool =
       check = "bin"
     of "macosx":
       check = "Quetoo.app"
+    else:
+      return true
   return not dirExists(opts.dir & "/" & check)
 
 proc install*(opts: InstallerOptions, pDie: proc(s: string), mainstatus: proc(s: string), pStatus: proc(s: string, progress: float)) =
