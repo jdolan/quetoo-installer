@@ -9,6 +9,7 @@ try:
   opts.cpu = cfg.getSectionValue("", "cpu", opts.cpu)
   opts.installBin = cfg.getSectionValue("", "installBin", $opts.installBin).parseBool
   opts.installData = cfg.getSectionValue("", "installData", $opts.installBin).parseBool
+  opts.purge = cfg.getSectionValue("", "purce", $opts.purge).parseBool
 except IOError:
   discard
 let verb = if isNewInstall(opts): "Install" else: "Update"
@@ -48,6 +49,10 @@ optionContainer.add(binCheckbox)
 var dataCheckbox = newCheckbox(verb & " data")
 dataCheckbox.checked = opts.installData
 optionContainer.add(dataCheckbox)
+
+var purgeCheckbox = newCheckbox("Purge old files")
+purgeCheckbox.checked = opts.purge
+optionContainer.add(purgeCheckbox)
 
 var osComboBox = newComboBox(@["windows", "mingw", "linux", "macosx"])
 osComboBox.value = opts.os
@@ -94,6 +99,7 @@ button.onClick = proc(event: ClickEvent) =
   opts.cpu = cpuComboBox.value
   opts.installBin = binCheckbox.checked
   opts.installData = dataCheckbox.checked
+  opts.purge = purgeCheckbox.checked
 
   var cfg = newConfig()
   cfg.setSectionKey("", "dir", opts.dir)
@@ -101,6 +107,7 @@ button.onClick = proc(event: ClickEvent) =
   cfg.setSectionKey("", "cpu", opts.cpu)
   cfg.setSectionKey("", "installBin", $opts.installBin)
   cfg.setSectionKey("", "installData", $opts.installData)
+  cfg.setSectionKey("", "purge", $opts.purge)
   createDir(splitPath(cfgPath)[0])
   writeConfig(cfg, cfgPath)
 

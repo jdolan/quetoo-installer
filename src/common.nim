@@ -64,7 +64,7 @@ proc download(url: string, transform: (string) -> string): seq[string] =
 type
   InstallerOptions* = object
     dir*, os*, cpu*: string
-    installBin*, installData*: bool
+    installBin*, installData*, purge*: bool
 
 proc newInstallerOptions*(): InstallerOptions =
   InstallerOptions(
@@ -73,6 +73,7 @@ proc newInstallerOptions*(): InstallerOptions =
     cpu: hostCPU,
     installBin: true,
     installData: true,
+    purge: true,
   )
 
 proc isNewInstall*(opts: InstallerOptions): bool =
@@ -131,18 +132,19 @@ proc install*(opts: InstallerOptions, pDie: proc(s: string), mainstatus: proc(s:
       else:
         files &= download("https://quetoo-data.s3.amazonaws.com/", (path) => "Quetoo.app/Contents/Resources/" & path)
 
-    mainstatus("Removing outdated files (3/3)")
-    status("Checking...", 0)
-    var paths: seq[string]
-    case opts.os:
-      of "windows", "mingw", "linux":
-        paths = @["bin", "lib", "share"]
-      of "macosx":
-        paths = @["Quetoo.app", "Update.app"]
-    for p in paths:
-      for f in walkDirRec(p):
-        if f.replace(DirSep, '/') notin files:
-          echo f
+    if opts.purge:
+      mainstatus("Removing outdated files (3/3)")
+      status("Checking...", 0)
+      var paths: seq[string]
+      case opts.os:
+        of "windows", "mingw", "linux":
+          paths = @["bin", "lib", "share"]
+        of "macosx":
+          paths = @["Quetoo.app", "Update.app"]
+      for p in paths:
+        for f in walkDirRec(p):
+          if f.replace(DirSep, '/') notin files:
+            echo f
 
     if opts.os == "linux":
       mainstatus("Making binaries executable (4/3)")

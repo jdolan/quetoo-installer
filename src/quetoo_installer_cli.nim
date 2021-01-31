@@ -19,13 +19,14 @@ Options:
   -h      --help       Show this message.
   -b      --bin        Only update binaries.
   -d      --data       Only update data.
+  -k      --keep       Keep unrecognised files.
   -o<os>  --os <os>    Override OS detection (windows, mingw, linux, macosx)
   -c<cpu> --cpu <cpu>  Override OS detection (i386, amd64)
 """
 
 var opts = newInstallerOptions()
 
-for kind, key, val in getopt(commandLineParams(), {'h', 'b', 'd'}, @["help", "bin", "data"]):
+for kind, key, val in getopt(commandLineParams(), {'h', 'b', 'd', 'k'}, @["help", "bin", "data", "keep"]):
   case kind:
     of cmdArgument:
       opts.dir = key
@@ -38,6 +39,8 @@ for kind, key, val in getopt(commandLineParams(), {'h', 'b', 'd'}, @["help", "bi
           opts.installData = false
         of "data", "d":
           opts.installBin = false
+        of "keep", "k":
+          opts.purge = false
         of "os", "o":
           opts.os = val
         of "cpu", "c":
