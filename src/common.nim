@@ -144,7 +144,7 @@ proc install*(opts: InstallerOptions, pDie: proc(s: string), mainstatus: proc(s:
       for p in paths:
         for f in walkDirRec(p):
           if f.replace(DirSep, '/') notin files:
-            echo f
+            removeFile(f)
 
     if opts.os == "linux":
       mainstatus("Making binaries executable (4/3)")
