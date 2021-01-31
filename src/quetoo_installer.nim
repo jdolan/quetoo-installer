@@ -9,7 +9,7 @@ try:
   opts.cpu = cfg.getSectionValue("", "cpu", opts.cpu)
   opts.installBin = cfg.getSectionValue("", "installBin", $opts.installBin).parseBool
   opts.installData = cfg.getSectionValue("", "installData", $opts.installBin).parseBool
-  opts.purge = cfg.getSectionValue("", "purce", $opts.purge).parseBool
+  opts.purge = cfg.getSectionValue("", "purge", $opts.purge).parseBool
 except IOError:
   discard
 let verb = if isNewInstall(opts): "Install" else: "Update"
