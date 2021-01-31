@@ -114,6 +114,7 @@ proc install*(opts: InstallerOptions, pDie: proc(s: string), mainstatus: proc(s:
 
   if triple == "":
     die("Unknown host: " & opts.os & "/" & opts.cpu)
+    return
 
   try:
     createDir(opts.dir)
