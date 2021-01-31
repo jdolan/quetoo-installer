@@ -19,7 +19,7 @@ Options:
   -h      --help       Show this message.
   -b      --bin        Only update binaries.
   -d      --data       Only update data.
-  -k      --keep       Keep unrecognised files.
+  -k      --keep       Don't delete unrecognised/outdated files.
   -o<os>  --os <os>    Override OS detection (windows, mingw, linux, macosx)
   -c<cpu> --cpu <cpu>  Override OS detection (i386, amd64)
 """
