@@ -63,7 +63,7 @@ proc download(url: string, transform: (string) -> string): seq[string] =
 
 type
   InstallerOptions* = object
-    dir*, os*, cpu*: string
+    dir*, os*, cpu*, forceTriple*: string
     installBin*, installData*, purge*: bool
 
 proc newInstallerOptions*(): InstallerOptions =
@@ -71,6 +71,7 @@ proc newInstallerOptions*(): InstallerOptions =
     dir: ".",
     os: hostOS,
     cpu: hostCPU,
+    forceTriple: "", # for java compat (--build option)
     installBin: true,
     installData: true,
     purge: true,
@@ -91,28 +92,29 @@ proc install*(opts: InstallerOptions, pDie: proc(s: string), mainstatus: proc(s:
   die = pDie
   status = pStatus
 
-  var triple: string
-  case opts.os:
-    of "windows":
-      case opts.cpu:
-        of "i386":
-          triple = "i686-pc-windows"
-        of "amd64":
-          triple = "x86_64-pc-windows"
-    of "mingw":
-      case opts.cpu:
-        of "i386":
-          triple = "i686-w64-mingw32"
-        of "amd64":
-          triple = "x86_64-w64-mingw32"
-    of "linux":
-      case opts.cpu:
-        of "amd64":
-          triple = "x86_64-pc-linux"
-    of "macosx":
-      case opts.cpu:
-        of "amd64":
-          triple = "x86_64-apple-darwin"
+  var triple = opts.forceTriple
+  if triple == "":
+    case opts.os:
+      of "windows":
+        case opts.cpu:
+          of "i386":
+            triple = "i686-pc-windows"
+          of "amd64":
+            triple = "x86_64-pc-windows"
+      of "mingw":
+        case opts.cpu:
+          of "i386":
+            triple = "i686-w64-mingw32"
+          of "amd64":
+            triple = "x86_64-w64-mingw32"
+      of "linux":
+        case opts.cpu:
+          of "amd64":
+            triple = "x86_64-pc-linux"
+      of "macosx":
+        case opts.cpu:
+          of "amd64":
+            triple = "x86_64-apple-darwin"
 
   if triple == "":
     die("Unknown host: " & opts.os & "/" & opts.cpu)

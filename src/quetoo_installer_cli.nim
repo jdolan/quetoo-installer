@@ -44,7 +44,11 @@ for kind, key, val in getopt(commandLineParams(), {'h', 'b', 'd', 'k'}, @["help"
         of "os", "o":
           opts.os = val
         of "cpu", "c":
-          opts.cpu  = val
+          opts.cpu = val
+        of "build":
+          opts.forceTriple = val
+        else:
+          echo "warning: unrecognised argument " & key
     of cmdEnd:
       assert(false)
 
